@@ -127,7 +127,7 @@ The owner identity is verified before issuing the replacement SIM to ensure acco
       "Issue a new SIM with the same number",
       "Activate the new SIM"
     ],
-    video_url: "",
+    video_url: "https://github.com/user-attachments/assets/5f84e5c9-056a-4b89-9905-4f660d59dcd0",
     time_ar: "5 دقائق"
   },
 
