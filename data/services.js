@@ -163,7 +163,7 @@ Coverage is verified for the area, then the setup request is sent to the technic
       "Refer the request to the technical team",
       "Follow up installation until activation"
     ],
-    video_url: "",
+    video_url: "https://drive.google.com/file/d/1lOQ9i8spQZ2RV8TJwXoCVrJqs5wiY0kX/view?usp=sharing",
     time_ar: "15 دقيقة"
   },
 
