@@ -127,7 +127,7 @@ The owner identity is verified before issuing the replacement SIM to ensure acco
       "Issue a new SIM with the same number",
       "Activate the new SIM"
     ],
-    video_url: "https://github.com/user-attachments/assets/5f84e5c9-056a-4b89-9905-4f660d59dcd0",
+    video_url: "",
     time_ar: "5 دقائق"
   },
 
@@ -163,7 +163,7 @@ Coverage is verified for the area, then the setup request is sent to the technic
       "Refer the request to the technical team",
       "Follow up installation until activation"
     ],
-    video_url: "https://drive.google.com/file/d/1lOQ9i8spQZ2RV8TJwXoCVrJqs5wiY0kX/view?usp=sharing",
+    video_url: "",
     time_ar: "15 دقيقة"
   },
 

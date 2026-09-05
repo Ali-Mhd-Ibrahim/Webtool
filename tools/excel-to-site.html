@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أداة تحويل الإكسل ← services.js | MTN Syria</title>
+<style>
+:root {
+  --mtn-yellow:#ffcb00; --mtn-yellow-soft:#fff3bf;
+  --bg:#f4f6fb; --surface:#fff; --surface-2:#f8fafc;
+  --text:#111827; --muted:#5b6472; --border:#e5e8ef;
+  --green:#16a34a; --red:#dc2626; --amber:#b45309;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'Cairo','Segoe UI',Tahoma,sans-serif;
+  background:var(--bg); color:var(--text); line-height:1.7;
+  padding-bottom:60px;
+}
+.container { max-width:980px; margin:0 auto; padding:0 18px; }
+header {
+  background:#000; color:#fff; padding:20px 0; margin-bottom:26px;
+  border-bottom:4px solid var(--mtn-yellow);
+}
+header .container { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+header h1 { font-size:20px; display:flex; align-items:center; gap:10px; }
+header h1 .logo { background:var(--mtn-yellow); color:#000; border-radius:8px; padding:2px 8px; font-size:14px; font-weight:800; }
+header .steps-hint { font-size:13px; color:#cbd5e1; }
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; padding:20px 22px; margin-bottom:18px;
+  box-shadow:0 2px 10px rgba(17,24,39,.07);
+}
+.card h2 { font-size:17px; margin-bottom:6px; display:flex; align-items:center; gap:8px; }
+.card .sub { font-size:13px; color:var(--muted); margin-bottom:14px; }
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:10px 18px; border-radius:12px; font-weight:700; font-size:14px;
+  border:1px solid transparent; cursor:pointer; transition:all .2s; font-family:inherit;
+}
+.btn-primary { background:var(--mtn-yellow); color:#000; }
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 16px rgba(255,203,0,.35); }
+.btn-outline { background:transparent; border-color:var(--border); color:var(--text); }
+.btn-outline:hover { border-color:var(--mtn-yellow); }
+.btn:disabled { opacity:.5; cursor:not-allowed; transform:none !important; }
+.field { margin-bottom:12px; }
+.field label { display:block; font-size:13px; font-weight:700; margin-bottom:6px; }
+input[type=text], input[type=url] {
+  width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px;
+  font-family:inherit; font-size:14px; background:var(--surface-2); color:var(--text);
+}
+input:focus { outline:none; border-color:var(--mtn-yellow); }
+.dropzone {
+  border:2px dashed #cbd5e1; border-radius:14px; padding:34px 20px; text-align:center;
+  background:var(--surface-2); cursor:pointer; transition:all .2s; margin-bottom:14px;
+}
+.dropzone.drag { border-color:var(--mtn-yellow); background:var(--mtn-yellow-soft); }
+.dropzone .big { font-size:34px; }
+.dropzone p { color:var(--muted); font-size:14px; }
+.dropzone p b { color:var(--text); }
+#fileName { font-size:13px; color:var(--green); font-weight:700; margin-top:10px; }
+
+.seg { display:flex; gap:8px; margin:10px 0 14px; background:var(--surface-2); border:1px solid var(--border); padding:4px; border-radius:12px; }
+.seg button { flex:1; padding:8px 10px; border:0; border-radius:9px; background:transparent; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; color:var(--muted); }
+.seg button.active { background:var(--mtn-yellow); color:#000; }
+
+#builtInNote { font-size:13px; color:var(--muted); margin-bottom:8px; }
+#builtInNote.ok { color:var(--green); }
+#builtInNote.fail { color:var(--amber); }
+
+#report { display:none; }
+#report.show { display:block; }
+.stat-row { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0; }
+.stat {
+  flex:1; min-width:140px; background:var(--surface-2); border:1px solid var(--border);
+  border-radius:12px; padding:12px; text-align:center;
+}
+.stat b { display:block; font-size:22px; color:#000; }
+.stat span { font-size:12px; color:var(--muted); }
+.stat.good b { color:var(--green); }
+.stat.warn b { color:var(--amber); }
+
+table { width:100%; border-collapse:collapse; font-size:13px; margin-top:10px; }
+th, td { padding:8px 10px; border-bottom:1px solid var(--border); text-align:right; vertical-align:top; }
+th { background:var(--surface-2); font-size:12px; }
+tbody tr:hover { background:var(--surface-2); }
+
+#list { max-height:320px; overflow:auto; }
+#list li { font-size:13px; padding:6px 10px; border-right:3px solid var(--mtn-yellow); background:var(--surface-2); border-radius:6px; margin-bottom:6px; }
+#list li.warn { border-right-color:var(--amber); }
+#list li.error { border-right-color:var(--red); }
+
+.actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.hidden { display:none !important; }
+#outBox {
+  width:100%; min-height:220px; font-family:Consolas,monospace; font-size:12px; direction:ltr; text-align:left;
+  background:#0d0e12; color:#d1e7dd; border:1px solid var(--border); border-radius:10px; padding:12px; margin-top:10px;
+}
+footer { text-align:center; color:var(--muted); font-size:13px; margin-top:30px; }
+a { color:inherit; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+@media (max-width:640px){ .grid2{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1><span class="logo">MTN</span> أداة تحويل الإكسل إلى بيانات الموقع</h1>
+    <div class="steps-hint">الخطوة 1: حمّل القالب ← الخطوة 2: عبّئه الموظفون ← الخطوة 3: ارفعه هنا ← الخطوة 4: نزّل services.js</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🧾 القالب (خطوة أولى)</h2>
+    <p class="sub">نزّل القالب واستلمه للموظفين غير التقنيين ليملأوا بيانات خدماتهم، ثم أرسله إليك (واتساب / بريد).</p>
+    <div class="grid2">
+      <button class="btn btn-primary" id="btnXlsxTemplate">⬇ تحميل قالب Excel (xlsx) احترافي</button>
+      <button class="btn btn-outline" id="btnCsvTemplate">⬇ تحميل قالب CSV (افتحه في أي برنامج جداول)</button>
+    </div>
+    <p class="sub" style="margin-top:8px;">القالب يحتوي صفّي مثال — قِسْ عليهما، ولا تغيّر صف الترويسة (السطر الأول) حتى لا تختل الأعمدة.</p>
+  </div>
+
+  <div class="card">
+    <h2>📥 ارفع التعديلات (خطوة ثالثة)</h2>
+    <p class="sub">اسحب ملف الإكسل (xlsx) أو CSV الذي أرسله الموظفون هنا، أو اختره من جهازك.</p>
+
+    <div class="dropzone" id="dropzone">
+      <div class="big">📁</div>
+      <p><b>اسحب الملف هنا</b> أو اضغط للاختيار</p>
+      <p style="font-size:12px;margin-top:6px;">يدعم: xlsx / xls / csv</p>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="hidden">
+
+    <div class="seg" id="modeSeg">
+      <button data-mode="merge" class="active">دمج مع البيانات الحالية (الأأمن)</button>
+      <button data-mode="replace">استبدال كامل</button>
+    </div>
+    <p id="builtInNote"></p>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="btnParse" disabled>تحويل الملف</button>
+      <button class="btn btn-outline" id="btnClear">تفريغ</button>
+    </div>
+  </div>
+
+  <div class="card" id="report">
+    <h2>📊 نتيجة التحويل</h2>
+    <div class="stat-row">
+      <div class="stat good"><b id="stTotal">0</b><span>إجمالي الخدمات</span></div>
+      <div class="stat good"><b id="stAdded">0</b><span>خدمات جديدة</span></div>
+      <div class="stat warn"><b id="stUpdated">0</b><span>تعديل على موجودة</span></div>
+      <div class="stat"><b id="stCategories">0</b><span>التصنيفات</span></div>
+    </div>
+
+    <div id="list"></div>
+
+    <h2 style="margin-top:16px;">👁 معاينة سريعة</h2>
+    <table>
+      <thead><tr><th>أيقونة</th><th>العنوان (ع)</th><th>العنوان (en)</th><th>التصنيف</th><th>فيديو</th><th>خطوات</th></tr></thead>
+      <tbody id="preview"></tbody>
+    </table>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="btnDownload">⬇ تنزيل services.js (استبدله في مجلد data)</button>
+      <button class="btn btn-outline" id="btnCopy">نسخ الكود</button>
+      <button class="btn btn-outline" id="btnBackup">تنزيل نسخة احتياطية من البيانات الحالية</button>
+    </div>
+    <textarea id="outBox" class="hidden" readonly></textarea>
+  </div>
+
+  <footer>تمهيد: بعد التنزيل، ضع الملف مكان <code>data/services.js</code> في مشروعك وارفع على GitHub — والموقع يتحدّث فوراً.</footer>
+</div>
+
+<!-- ===== SheetJS من CDN (مطلوب لملفات xlsx) ===== -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="../data/services.js"></script>
+
+<script>
+/* ============================================================
+   منطق الأداة
+   ============================================================ */
+(function(){
+  'use strict';
+
+  var BUILTIN_SERVICES = (typeof SERVICES_DATA !== 'undefined') ? SERVICES_DATA : [];
+  var BUILTIN_CATEGORIES = (typeof CATEGORIES !== 'undefined') ? CATEGORIES : [];
+
+  var mode = 'merge';
+  var rawRows = null;
+  var generatedCode = '';
+  var lastResult = null;
+
+  /* ---------- عناصر ---------- */
+  var dropzone = document.getElementById('dropzone');
+  var fileInput = document.getElementById('fileInput');
+  var btnParse = document.getElementById('btnParse');
+  var btnClear = document.getElementById('btnClear');
+  var noteEl = document.getElementById('builtInNote');
+  var segEl = document.getElementById('modeSeg');
+
+  /* ---------- حالة البيانات الحالية ---------- */
+  function loadBuiltIn(){
+    if (BUILTIN_SERVICES.length){
+      noteEl.textContent = '✓ تم تحميل البيانات الحالية من data/services.js : ' + BUILTIN_SERVICES.length + ' خدمة — وضع الدمج سيعمل بنجاح.';
+      noteEl.className = 'ok';
+    } else {
+      noteEl.textContent = 'تنبيه: لم يتم العثور على البيانات الحالية (افتح الأداة عبر موقعك أو localhost وليس مباشرة من الملف). الوضع سيستبدل كل شيء بما في الإكسل.';
+      noteEl.className = 'fail';
+    }
+    noteEl.style.display = 'block';
+  }
+
+  /* ---------- قراءة الملف ---------- */
+  function handleFile(file){
+    if (!file) return;
+    if (/\.(xlsx|xls|csv)$/i.test(file.name) === false){
+      alert('الرجاء اختيار ملف بصيغة xlsx أو xls أو csv');
+      return;
+    }
+    document.getElementById('fileName').textContent = 'المحدّد: ' + file.name;
+    rawRows = null;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var data = ev.target.result;
+      try {
+        if (typeof XLSX !== 'undefined'){
+          var wb = XLSX.read(data, {type: file.name.toLowerCase().endsWith('.csv') ? 'string' : 'array', codepage: 65001});
+          var first = wb.SheetNames[0];
+          var sheet = wb.Sheets[first];
+          rawRows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+        } else {
+          // بدون SheetJS: بارس CSV مبني يدوياً
+          var text = typeof data === 'string' ? data : new TextDecoder('utf-8').decode(data);
+          if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+          rawRows = parseCsv(text);
+        }
+      } catch(e){
+        alert('تعذر قراءة الملف: ' + e.message);
+        rawRows = null;
+      }
+      btnParse.disabled = !rawRows;
+      if (rawRows) btnParse.disabled = false;
+    };
+    if (file.name.toLowerCase().endsWith('.csv')){
+      reader.readAsText(file, 'utf-8');
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
+  }
+
+  dropzone.addEventListener('click', function(){ fileInput.click(); });
+  fileInput.addEventListener('change', function(){ handleFile(fileInput.files[0]); });
+  ['dragover','dragenter'].forEach(function(ev){
+    dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.add('drag'); });
+  });
+  ['dragleave','drop'].forEach(function(ev){
+    dropzone.addEventListener(ev, function(e){ e.preventDefault(); dropzone.classList.remove('drag'); });
+  });
+  dropzone.addEventListener('drop', function(e){ handleFile(e.dataTransfer.files[0]); });
+
+  segEl.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    segEl.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    mode = b.getAttribute('data-mode');
+  });
+
+  btnClear.addEventListener('click', function(){
+    fileInput.value=''; rawRows=null; btnParse.disabled=true;
+    document.getElementById('fileName').textContent='';
+    document.getElementById('report').classList.remove('show');
+  });
+
+  /* ---------- بارس CSV بسيط (بدون مكتبة) ---------- */
+  function parseCsv(text){
+    var rows=[], row=[], field='', inQ=false, i=0;
+    while(i < text.length){
+      var c = text[i];
+      if (inQ){
+        if (c === '"'){
+          if (text[i+1] === '"'){ field+='"'; i+=2; continue; }
+          inQ=false; i++; continue;
+        }
+        field += c;
+      } else {
+        if (c === '"'){ inQ=true; }
+        else if (c === ','){ row.push(field); field=''; }
+        else if (c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+        else if (c === '\r'){ /* تجاهل */ }
+        else { field += c; }
+      }
+      i++;
+    }
+    if (field !== '' || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return r.some(function(x){ return String(x).trim() !== ''; }); });
+  }
+
+  /* ---------- تطبيع الترويسة ---------- */
+  function norm(v){
+    var t = String(v || '');
+    t = t.replace(/\([^)]*\)/g, '');                       // حذف ما بين قوسين
+    t = t.replace(/[\u064B-\u0654]/g, '');                 // حذف التشكيل
+    t = t.replace(/[أإآ]/g, 'ا').replace(/ؤ/g,'و').replace(/ى/g,'ي'); // توحيد الهمزات
+    t = t.toLowerCase();
+    return t.replace(/[\s_\-،,()\\/]+/g, '');
+  }
+
+  var FIELDS = {
+    id:          ['id','serviceid','معرفالخدمة','الخدمةid','المعرّف'],
+    category:    ['category','التصنيف','الفئة'],
+    icon:        ['icon','الايقونة','الرمز','ايقونة'],
+    title_ar:    ['titlear','العنوانبالعربية','العنوان','arabictitle','arabictitlearabic'],
+    title_en:    ['titleen','العنوانبالإنجليزية','العنوانبالإنجليزية','englishtitle','titleenglish'],
+    summary_ar:  ['summaryar','الملخصبالعربية','الوصفالمختصربالعربية','الملخص'],
+    summary_en:  ['summaryen','الملخصبالإنجليزية','الملخصبالإنجليزية','englishsummary'],
+    description_ar: ['descriptionar','الشرحبالعربية','الوصفبالعربية','شرحالعربية','الشرح'],
+    description_en: ['descriptionen','الشرحبالإنجليزية','الشرحبالإنجليزية','englishdescription','الوصفبالإنجليزية'],
+    steps_ar:    ['stepsar','الخطواتبالعربية','الخطوات','arabicsteps'],
+    steps_en:    ['stepsen','الخطواتبالإنجليزية','الخطواتبالإنجليزية','englishsteps'],
+    video_url:   ['videourl','رابطالفيديو','رابطالفيديوفيديويوتيوب','الفيديولink'],
+    time_ar:     ['timear','الزمنبالعربية','المدةبالعربية','الزمن','المدة'],
+    time_en:     ['timeen','الزمنبالإنجليزية','الزمنبالإنجليزي','duration'],
+    cat_icon:    ['categoryicon','ايقونةالتصنيف'],
+    cat_ar:      ['categoryar','اسمالتصنيفبالعربية','التصنيفبالعربية','categoryarabic'],
+    cat_en:      ['categoryen','اسمالتصنيفبالإنجليزية','الاسمالإنجليزيللتصنيف','categoryenglish']
+  };
+
+  function detectHeaders(row0){
+    // تطبيع كل الأسماء المستعارة مرة واحدة
+    var FIELDS_NORM = {};
+    for (var f in FIELDS){ FIELDS_NORM[f] = FIELDS[f].map(norm); }
+    var map = {};
+    row0.forEach(function(h, i){
+      var n = norm(h);
+      if (!n) return;
+      for (var f2 in FIELDS_NORM){
+        if (FIELDS_NORM[f2].indexOf(n) !== -1 && !(f2 in map)){ map[f2] = i; }
+      }
+    });
+    return map;
+  }
+
+  /* ---------- تفريغ قيمة خلية ---------- */
+  function cellV(raw, hr, col, hyperlink){
+    if (col === undefined) return undefined;
+    var v = raw[col];
+    if (v === null || v === undefined) v = '';
+    if (v && typeof v === 'object' && typeof v.w !== 'undefined') v = v.w; // SheetJS cell object
+    // واجهة بريدية
+    if (hyperlink && raw && typeof raw === 'object' && v && v.l && v.l.Target) return v.l.Target;
+    return String(v).trim();
+  }
+
+  /* ---------- تقسيم الخطوات ---------- */
+  function splitSteps(v){
+    if (!v) return [];
+    return String(v)
+      .split(/\r?\n|\s*\|\s*|\uff1b/)  // سطر جديد أو | أو ؛
+      .map(function(s){ return s.trim().replace(/^\d+[.).\u066b]?\s*/, ''); })
+      .filter(Boolean);
+  }
+
+  /* ---------- بناء التصنيفات ---------- */
+  function buildCategories(rows, map, hasHeaders){
+    var seen = {}; var order = [];
+    rows.forEach(function(r, idx){
+      var catId = cellV(r, map, map.category);
+      if (!catId) catId = '';
+      if (catId && !seen[catId]){ seen[catId] = { ar:'', en:'', icon:'' }; order.push(catId); }
+      if (catId && seen[catId]){
+        var ar = cellV(r, map, map.cat_ar);
+        var en = cellV(r, map, map.cat_en);
+        var ic = cellV(r, map, map.cat_icon);
+        if (ar && !seen[catId].ar) seen[catId].ar = ar;
+        if (en && !seen[catId].en) seen[catId].en = en;
+        if (ic && !seen[catId].icon) seen[catId].icon = ic;
+      }
+    });
+    var cats = [];
+    order.forEach(function(id){
+      var info = seen[id];
+      var built = BUILTIN_CATEGORIES.filter(function(c){ return c.id === id; })[0];
+      cats.push({
+        id: id,
+        icon: info.icon || (built ? built.icon : '📦'),
+        title_ar: info.ar || (built ? built.title_ar : id),
+        title_en: info.en || (built ? built.title_en : id)
+      });
+    });
+    return cats;
+  }
+
+  /* ---------- بناء الخدمات ---------- */
+  function buildServices(rows, map){
+    var services = []; var issues = []; var seenIds = {};
+    var base;
+    if (mode === 'merge'){ base = BUILTIN_SERVICES.map(function(s){ return JSON.parse(JSON.stringify(s)); }); }
+    else { base = []; }
+    var baseIndex = {};
+    base.forEach(function(s){ baseIndex[s.id] = true; });
+
+    rows.forEach(function(r, idx){
+      var titleAr = cellV(r, map, map.title_ar);
+      var titleEn = cellV(r, map, map.title_en);
+      if (!titleAr && !titleEn){
+        issues.push({level:'warn', text:'الصف ' + (idx+1) + ': صف فارغ — تم تخطيه'});
+        return;
+      }
+      var id = cellV(r, map, map.id);
+      if (!id){
+        id = slugify(titleAr || titleEn || ('service-' + (idx+1)));
+        issues.push({level:'warn', text:'الخدمة "' + (titleAr||titleEn) + '": لا يوجد معرّف، تم توليده تلقائياً (' + id + ')'});
+      }
+      if (seenIds[id]){
+        issues.push({level:'warn', text:'الخدمة "' + (titleAr||titleEn) + '": معرّف مكرر (' + id + ') — تم استخدام آخر نسخة'});
+      }
+      seenIds[id] = true;
+
+      var svc = {
+        id: id,
+        category: cellV(r, map, map.category) || 'c-other',
+        icon: cellV(r, map, map.icon) || '📦',
+        title_ar: titleAr || titleEn,
+        title_en: titleEn || titleAr,
+        summary_ar: cellV(r, map, map.summary_ar),
+        summary_en: cellV(r, map, map.summary_en),
+        description_ar: cellV(r, map, map.description_ar),
+        description_en: cellV(r, map, map.description_en),
+        steps_ar: splitSteps(cellV(r, map, map.steps_ar)),
+        steps_en: splitSteps(cellV(r, map, map.steps_en)),
+        video_url: cellV(r, map, map.video_url),
+        time_ar: cellV(r, map, map.time_ar),
+        time_en: cellV(r, map, map.time_en)
+      };
+      if (!svc.category){ svc.category = 'c-other'; }
+      if (baseIndex[id]){
+        var ix = base.findIndex(function(s){ return s.id === id; });
+        if (ix !== -1) base[ix] = svc;
+        issues.push({level:'ok', text:'تم تحديث خدمة موجودة: "' + (titleAr||titleEn) + '" (' + id + ')'});
+      } else {
+        base.push(svc);
+        baseIndex[id] = true;
+      }
+    });
+
+    services = base;
+    return { services: services, issues: issues, added: base.length - BUILTIN_SERVICES.length, updated: issues.filter(function(i){return i.level==='ok';}).length };
+  }
+
+  function slugify(s){
+    return String(s).toLowerCase().trim()
+      .replace(/[^\w\u0600-\u06FF\s-]/g,'')
+      .replace(/\s+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  }
+
+  function summaryIssues(svc){
+    var out=[];
+    if(!svc.title_ar) out.push('لا يحتوي عنوان عربي');
+    if(!svc.title_en) out.push('لا يحتوي عنوان إنجليزي');
+    if(!svc.description_ar && !svc.description_en) out.push('لا يحتوي شرح (فارغ)');
+    if(!svc.video_url) out.push('لا يوجد فيديو (مقبول إذا سيُضاف لاحقاً)');
+    if(svc.category === 'c-other') out.push('تصنيف فراغي → c-other');
+    return out;
+  }
+
+  /* ---------- توليد الكود ---------- */
+  function generateCode(services, cats){
+    var d = new Date();
+    var stamp = d.toISOString().replace('T',' ').slice(0,19) + ' UTC';
+    var json = function(o){ return JSON.stringify(o, null, 2); };
+
+    var body = '/* ============================================================\n'
+      + '   MTN Syria - كتيب الخدمات التدريبي\n'
+      + '   ⚠ هذا الملف مُولّد تلقائياً بواسطة أداة تحويل الإكسل\n'
+      + '   تاريخ التوليد: ' + stamp + '\n'
+      + '   لا تعدّله يدوياً — عدّل من ملف الإكسل ثم ولّد من جديد.\n'
+      + '   ============================================================ */\n\n'
+      + 'const SERVICES_DATA = ' + json(services) + ';\n\n'
+      + '/* الفئات (مولّدة تلقائياً) */\n'
+      + 'const CATEGORIES = ' + json(cats) + ';';
+
+    // يضمن نسخ الأرقام العربية؟ الإخراج JSON صالح بنفسه
+    if (services.length){
+      try { JSON.parse(json(services)); } catch(e){ }
+    }
+    return body;
+  }
+
+  /* ---------- العرض ---------- */
+  function render(result){
+    lastResult = result;
+    document.getElementById('stTotal').textContent = result.services.length;
+    document.getElementById('stAdded').textContent = Math.max(0, result.added);
+    document.getElementById('stUpdated').textContent = result.updated;
+    document.getElementById('stCategories').textContent = result.categories.length;
+    document.getElementById('report').classList.add('show');
+
+    var list = document.getElementById('list');
+    list.innerHTML = '';
+    if (result.issues.length){
+      result.issues.forEach(function(i){
+        var li = document.createElement('li');
+        li.className = i.level;
+        li.textContent = (i.level === 'ok' ? '✓ ' : (i.level === 'warn' ? '⚠ ' : '✗ ')) + i.text;
+        list.appendChild(li);
+      });
+    } else {
+      list.innerHTML = '<li> ✓ لا توجد ملاحظات — كل شيء سليم.</li>';
+    }
+
+    var pb = document.getElementById('preview');
+    pb.innerHTML = result.services.slice(0, 25).map(function(s){
+      return '<tr><td>' + escapeHtml(s.icon) + '</td><td>' + escapeHtml(s.title_ar) + '</td><td>' + escapeHtml(s.title_en) + '</td>' +
+        '<td>' + escapeHtml(s.category) + '</td><td>' + (s.video_url ? '✓' : '—') + '</td><td>' + s.steps_ar.length + '</td></tr>';
+    }).join('');
+
+    generatedCode = generateCode(result.services, result.categories);
+    document.getElementById('outBox').value = generatedCode;
+  }
+
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, function(m){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+  }
+
+  /* ---------- زر التحويل ---------- */
+  btnParse.addEventListener('click', function(){
+    if (!rawRows || !rawRows.length){ alert('لا توجد بيانات'); return; }
+    var rows = rawRows;
+    // ترويسة؟ الكشف عنها
+    var headerRow = rows[0];
+    var map = detectHeaders(headerRow);
+    var hasHeaders = Object.keys(map).length >= 8; // عدد الحقول الأساسية المكتشفة
+    var dataRows = hasHeaders ? rows.slice(1) : rows;
+
+    if (!dataRows.length){ alert('لا توجد صفوف بيانات بعد الترويسة'); return; }
+
+    var cats = buildCategories(dataRows, map);
+    var res = buildServices(dataRows, map);
+    // أعد فحص تصنيفات غير معروفة (ظهرت في القائمة لكن بلا بيانات)
+    res.categories = cats;
+    res.issues = res.issues.concat(
+      cats.filter(function(c){
+        return BUILTIN_CATEGORIES.every(function(b){ return b.id !== c.id; });
+      }).map(function(c){
+        return { level:'warn', text:'تصنيف جديد: "' + c.title_ar + '" (' + c.id + ')' };
+      })
+    );
+
+    render(res);
+  });
+
+  /* ---------- التنزيل والنسخ ---------- */
+  document.getElementById('btnDownload').addEventListener('click', function(){
+    if (!generatedCode) return;
+    var blob = new Blob([generatedCode], {type:'text/javascript;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'services.js';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 100);
+  });
+
+  document.getElementById('btnCopy').addEventListener('click', function(){
+    var box = document.getElementById('outBox');
+    box.classList.remove('hidden');
+    box.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch(e){}
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(generatedCode).then(function(){ alert('تم النسخ ✓'); });
+      return;
+    }
+    alert(ok ? 'تم النسخ ✓' : 'انسخ الكود يدوياً (Ctrl+C) من المربع الأسود');
+  });
+
+  document.getElementById('btnBackup').addEventListener('click', function(){
+    if (!BUILTIN_SERVICES.length){ alert('لا توجد بيانات حالية للنسخ الاحتياطي'); return; }
+    var code = generateCode(BUILTIN_SERVICES, BUILTIN_CATEGORIES);
+    var blob = new Blob([code], {type:'text/javascript;charset=utf-8'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'services-backup.js';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },100);
+  });
+
+  /* ---------- توليد قالب XLSX ---------- */
+  function sheetToXlsx(){
+    var headers = [
+      'معرّف الخدمة (id)','التصنيف (category)','الأيقونة (icon)',
+      'العنوان بالعربية','العنوان بالإنجليزية',
+      'الملخص بالعربية','الملخص بالإنجليزية',
+      'الشرح بالعربية (سطر جديد = فقرة جديدة)','الشرح بالإنجليزية',
+      'الخطوات بالعربية (كل خطوة بسطر)','الخطوات بالإنجليزية',
+      'رابط الفيديو (video_url)','الزمن بالعربية','الزمن بالإنجليزية',
+      'أيقونة التصنيف (category_icon)','اسم التصنيف بالعربية','اسم التصنيف بالإنجليزية'
+    ];
+    var example = ['new-example','c-mobile','📱','عنوان الخدمة (مثال)','Service Title (example)',
+      'ملخص قصير يظهر في بطاقة الخدمة','Short summary shown on the card',
+      'هنا الشرح التفصيلي.\n\nسطر فارغ = فقرة جديدة.','Detailed description here.\n\nBlank line = new paragraph.',
+      'الخطوة الأولى\nالخطوة الثانية\nالخطوة الثالثة','Step one\nStep two\nStep three',
+      '','5 دقائق','5 minutes','','',''];
+    var aoa = [headers, example];
+
+    var sheet = XLSX.utils.aoa_to_sheet(aoa);
+    sheet['!cols'] = [
+      {wch:16},{wch:16},{wch:10},{wch:24},{wch:24},
+      {wch:34},{wch:34},{wch:50},{wch:50},
+      {wch:34},{wch:34},{wch:34},{wch:12},{wch:12},
+      {wch:20},{wch:24},{wch:24}
+    ];
+    // تنسيق الترويسة + تجميد أول سطر
+    if (sheet['A1']){
+      var range = XLSX.utils.decode_range(sheet['!ref']);
+      for (var C = range.s.c; C <= range.e.c; C++){
+        var addr = XLSX.utils.encode_cell({r:0, c:C});
+        if (sheet[addr]) sheet[addr].s = { fill:{fgColor:{rgb:'FFCB00'}}, font:{bold:true, color:{rgb:'000000'}}, alignment:{wrapText:true} };
+      }
+    }
+    sheet['!autofilter'] = {ref:'A1:' + XLSX.utils.encode_range(range).split(':')[1]};
+
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, sheet, 'الخدمات');
+    // ورقة تعليمات
+    var wsNote = XLSX.utils.aoa_to_sheet([
+      ['تعليمات استخدام القالب'],
+      [''],
+      ['1 - لا تعدّل صف الترويسة (السطر الأول).'],
+      ['2 - الصف الثاني مثال — يمكنك حذفه أو التعديل عليه.'],
+      ['3 - كل خدمة في صف واحد.'],
+      ['4 - الخطوات: اكتب كل خطوة في سطر مستقل داخل نفس الخلية (Alt+Enter في إكسل).'],
+      ['5 - الشرح: سطر فارغ = يتحول إلى فقرة جديدة.'],
+      ['6 - التصنيف: اكتب أي رمز مثل c-mobile أو c-billing، وإن كان تصنيفاً جديداً املأ الأعمدة الثلاثة الأخيرة.'],
+      ['7 - الفيديو: ضع رابط يوتيوب كامل، أو اتركه فارغاً ليرفع لاحقاً.'],
+      ['8 - بعد الملء: احفظ الملف وأرسله للمشرف لتحويله من أداة الموقع.']
+    ]);
+    wsNote['!cols'] = [{wch:90}];
+    XLSX.utils.book_append_sheet(wb, wsNote, 'تعليمات');
+
+    XLSX.writeFile(wb, 'MTN-services-template.xlsx');
+  }
+
+  document.getElementById('btnXlsxTemplate').addEventListener('click', function(){
+    if (typeof XLSX === 'undefined'){ alert('تعذر تحميل مكتبة الإكسل من الإنترنت — استخدم زر CSV بدلاً منه.'); return; }
+    sheetToXlsx();
+  });
+
+  document.getElementById('btnCsvTemplate').addEventListener('click', function(){
+    var a = document.createElement('a');
+    a.href = '../template/قائمة-الخدمات.csv';
+    a.download = 'قائمة-الخدمات.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ a.remove(); },100);
+  });
+
+  /* ---------- إقلاع ---------- */
+  loadBuiltIn();
+})();
+</script>
+</body>
+</html>
